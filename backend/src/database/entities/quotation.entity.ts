@@ -4,14 +4,19 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  DeleteDateColumn,
   ManyToOne,
   OneToMany,
   JoinColumn,
+  VersionColumn,
 } from 'typeorm';
 import { User } from './user.entity';
 import { Customer } from './customer.entity';
 import { QuotationItem } from './quotation-item.entity';
 import { Template } from './template.entity';
+import { Currency } from './currency.entity';
+import { Attachment } from './attachment.entity';
+import { QuotationHistory } from './quotation-history.entity';
 
 export enum QuotationStatus {
   DRAFT = 'draft',
@@ -63,6 +68,13 @@ export class Quotation {
   @Column({ type: 'decimal', precision: 15, scale: 2, default: 0 })
   total: number;
 
+  @Column({ name: 'currency_id', nullable: true })
+  currencyId: string;
+
+  @ManyToOne(() => Currency, { nullable: true })
+  @JoinColumn({ name: 'currency_id' })
+  currency: Currency;
+
   @Column({ name: 'template_id', nullable: true })
   templateId: string;
 
@@ -83,9 +95,21 @@ export class Quotation {
   })
   items: QuotationItem[];
 
+  @OneToMany(() => Attachment, (attachment) => attachment.quotation)
+  attachments: Attachment[];
+
+  @OneToMany(() => QuotationHistory, (history) => history.quotation)
+  history: QuotationHistory[];
+
+  @VersionColumn()
+  version: number;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
+
+  @DeleteDateColumn({ name: 'deleted_at' })
+  deletedAt: Date;
 }

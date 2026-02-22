@@ -8,6 +8,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { User } from './user.entity';
+import { Currency } from './currency.entity';
 
 @Entity('products')
 export class Product {
@@ -31,6 +32,13 @@ export class Product {
 
   @Column({ name: 'is_active', default: true })
   isActive: boolean;
+
+  @Column({ name: 'currency_id', nullable: true })
+  currencyId: string;
+
+  @ManyToOne(() => Currency, { nullable: true })
+  @JoinColumn({ name: 'currency_id' })
+  currency: Currency;
 
   @Column({ name: 'created_by' })
   createdBy: string;

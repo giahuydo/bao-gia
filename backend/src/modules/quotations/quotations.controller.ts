@@ -48,20 +48,20 @@ export class QuotationsController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update a quotation' })
-  update(@Param('id') id: string, @Body() updateDto: UpdateQuotationDto) {
-    return this.quotationsService.update(id, updateDto);
+  update(@Param('id') id: string, @Body() updateDto: UpdateQuotationDto, @CurrentUser() user: User) {
+    return this.quotationsService.update(id, updateDto, user.id);
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Delete a quotation' })
+  @ApiOperation({ summary: 'Delete a quotation (soft delete)' })
   remove(@Param('id') id: string) {
     return this.quotationsService.remove(id);
   }
 
   @Patch(':id/status')
   @ApiOperation({ summary: 'Update quotation status' })
-  updateStatus(@Param('id') id: string, @Body() updateStatusDto: UpdateStatusDto) {
-    return this.quotationsService.updateStatus(id, updateStatusDto.status);
+  updateStatus(@Param('id') id: string, @Body() updateStatusDto: UpdateStatusDto, @CurrentUser() user: User) {
+    return this.quotationsService.updateStatus(id, updateStatusDto.status, user.id);
   }
 
   @Post(':id/duplicate')

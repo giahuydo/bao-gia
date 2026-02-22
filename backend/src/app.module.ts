@@ -8,6 +8,10 @@ import { Product } from './database/entities/product.entity';
 import { Quotation } from './database/entities/quotation.entity';
 import { QuotationItem } from './database/entities/quotation-item.entity';
 import { Template } from './database/entities/template.entity';
+import { Currency } from './database/entities/currency.entity';
+import { CompanySettings } from './database/entities/company-settings.entity';
+import { Attachment } from './database/entities/attachment.entity';
+import { QuotationHistory } from './database/entities/quotation-history.entity';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { CustomersModule } from './modules/customers/customers.module';
@@ -15,6 +19,9 @@ import { ProductsModule } from './modules/products/products.module';
 import { QuotationsModule } from './modules/quotations/quotations.module';
 import { TemplatesModule } from './modules/templates/templates.module';
 import { AiModule } from './modules/ai/ai.module';
+import { CurrenciesModule } from './modules/currencies/currencies.module';
+import { CompanySettingsModule } from './modules/company-settings/company-settings.module';
+import { AttachmentsModule } from './modules/attachments/attachments.module';
 
 @Module({
   imports: [
@@ -32,7 +39,18 @@ import { AiModule } from './modules/ai/ai.module';
         username: configService.get('database.username'),
         password: configService.get('database.password'),
         database: configService.get('database.database'),
-        entities: [User, Customer, Product, Quotation, QuotationItem, Template],
+        entities: [
+          User,
+          Customer,
+          Product,
+          Quotation,
+          QuotationItem,
+          Template,
+          Currency,
+          CompanySettings,
+          Attachment,
+          QuotationHistory,
+        ],
         synchronize: configService.get('NODE_ENV') !== 'production',
         logging: configService.get('NODE_ENV') === 'development',
       }),
@@ -44,6 +62,9 @@ import { AiModule } from './modules/ai/ai.module';
     QuotationsModule,
     TemplatesModule,
     AiModule,
+    CurrenciesModule,
+    CompanySettingsModule,
+    AttachmentsModule,
   ],
 })
 export class AppModule {}

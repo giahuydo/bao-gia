@@ -7,6 +7,7 @@ import * as Handlebars from 'handlebars';
 import * as puppeteer from 'puppeteer';
 import { Quotation, QuotationStatus } from '../../database/entities/quotation.entity';
 import { QuotationItem } from '../../database/entities/quotation-item.entity';
+import { QuotationHistory, HistoryAction } from '../../database/entities/quotation-history.entity';
 import { CreateQuotationDto } from './dto/create-quotation.dto';
 import { UpdateQuotationDto } from './dto/update-quotation.dto';
 import { QuotationQueryDto } from './dto/quotation-query.dto';
@@ -19,6 +20,8 @@ export class QuotationsService {
     private quotationsRepository: Repository<Quotation>,
     @InjectRepository(QuotationItem)
     private itemsRepository: Repository<QuotationItem>,
+    @InjectRepository(QuotationHistory)
+    private historyRepository: Repository<QuotationHistory>,
     private dataSource: DataSource,
   ) {}
 
@@ -65,6 +68,14 @@ export class QuotationsService {
       const quotation = queryRunner.manager.create(Quotation, quotationData);
 
       const saved = await queryRunner.manager.save(Quotation, quotation);
+
+      await queryRunner.manager.save(QuotationHistory, {
+        quotationId: saved.id,
+        action: HistoryAction.CREATED,
+        performedBy: userId,
+        note: `Quotation ${quotationNumber} created`,
+      });
+
       await queryRunner.commitTransaction();
 
       return this.findOne(saved.id);
@@ -80,7 +91,8 @@ export class QuotationsService {
     const { page, limit, search, status, customerId } = queryDto;
     const qb = this.quotationsRepository.createQueryBuilder('quotation')
       .leftJoinAndSelect('quotation.customer', 'customer')
-      .leftJoinAndSelect('quotation.items', 'items');
+      .leftJoinAndSelect('quotation.items', 'items')
+      .leftJoinAndSelect('quotation.currency', 'currency');
 
     if (search) {
       qb.andWhere(
@@ -108,8 +120,8 @@ export class QuotationsService {
   async findOne(id: string): Promise<Quotation> {
     const quotation = await this.quotationsRepository.findOne({
       where: { id },
-      relations: ['customer', 'items', 'createdByUser'],
-      order: { items: { sortOrder: 'ASC' } },
+      relations: ['customer', 'items', 'createdByUser', 'currency', 'attachments', 'history', 'history.performedByUser'],
+      order: { items: { sortOrder: 'ASC' }, history: { createdAt: 'DESC' } },
     });
     if (!quotation) {
       throw new NotFoundException('Quotation not found');
@@ -117,13 +129,14 @@ export class QuotationsService {
     return quotation;
   }
 
-  async update(id: string, updateDto: UpdateQuotationDto): Promise<Quotation> {
+  async update(id: string, updateDto: UpdateQuotationDto, userId: string): Promise<Quotation> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     try {
       const quotation = await this.findOne(id);
+      const changes: Record<string, any> = {};
 
       if (updateDto.items) {
         await queryRunner.manager.delete(QuotationItem, { quotationId: id });
@@ -149,10 +162,28 @@ export class QuotationsService {
 
         updateDto['subtotal'] = subtotal;
         updateDto['total'] = total;
+        changes.items = 'updated';
       }
 
       const { items, ...updateData } = updateDto;
+
+      for (const [key, value] of Object.entries(updateData)) {
+        if (quotation[key] !== value) {
+          changes[key] = { from: quotation[key], to: value };
+        }
+      }
+
       await queryRunner.manager.update(Quotation, id, updateData);
+
+      if (Object.keys(changes).length > 0) {
+        await queryRunner.manager.save(QuotationHistory, {
+          quotationId: id,
+          action: HistoryAction.UPDATED,
+          changes,
+          performedBy: userId,
+          note: `Quotation updated`,
+        });
+      }
 
       await queryRunner.commitTransaction();
       return this.findOne(id);
@@ -166,13 +197,23 @@ export class QuotationsService {
 
   async remove(id: string): Promise<void> {
     const quotation = await this.findOne(id);
-    await this.quotationsRepository.remove(quotation);
+    await this.quotationsRepository.softRemove(quotation);
   }
 
-  async updateStatus(id: string, status: QuotationStatus): Promise<Quotation> {
+  async updateStatus(id: string, status: QuotationStatus, userId: string): Promise<Quotation> {
     const quotation = await this.findOne(id);
+    const oldStatus = quotation.status;
     quotation.status = status;
     await this.quotationsRepository.save(quotation);
+
+    await this.historyRepository.save({
+      quotationId: id,
+      action: HistoryAction.STATUS_CHANGED,
+      changes: { status: { from: oldStatus, to: status } },
+      performedBy: userId,
+      note: `Status changed from ${oldStatus} to ${status}`,
+    });
+
     return this.findOne(id);
   }
 
@@ -192,6 +233,7 @@ export class QuotationsService {
       tax: original.tax,
       subtotal: original.subtotal,
       total: original.total,
+      currencyId: original.currencyId,
       templateId: original.templateId,
       createdBy: userId,
       items: original.items.map((item) =>
@@ -209,6 +251,15 @@ export class QuotationsService {
     });
 
     const saved = await this.quotationsRepository.save(newQuotation);
+
+    await this.historyRepository.save({
+      quotationId: saved.id,
+      action: HistoryAction.DUPLICATED,
+      performedBy: userId,
+      note: `Duplicated from ${original.quotationNumber}`,
+      changes: { originalId: id, originalNumber: original.quotationNumber },
+    });
+
     return this.findOne(saved.id);
   }
 
@@ -279,6 +330,7 @@ export class QuotationsService {
       .createQueryBuilder('q')
       .where('q.quotationNumber LIKE :prefix', { prefix: `${prefix}%` })
       .orderBy('q.quotationNumber', 'DESC')
+      .withDeleted()
       .getOne();
 
     let sequence = 1;
