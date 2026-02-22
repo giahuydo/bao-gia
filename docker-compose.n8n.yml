@@ -1,0 +1,112 @@
+##
+# docker-compose.n8n.yml
+#
+# n8n Workflow Engine for Bao Gia (Quotation Management)
+# This runs n8n with its OWN PostgreSQL database (separate from Bao Gia's DB).
+# Runs on port 5679 — independent from Clincove's n8n on port 5678.
+#
+# Usage:
+#   docker compose -f docker-compose.n8n.yml up -d
+#
+# Note: Telemetry is DISABLED (N8N_DIAGNOSTICS_ENABLED=false).
+##
+
+version: '3.8'
+
+services:
+  # -------------------------------------------------------
+  # n8n Workflow Automation Engine
+  # -------------------------------------------------------
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:latest
+    container_name: baogia-n8n
+    restart: unless-stopped
+    ports:
+      - "${N8N_PORT:-5679}:5678"
+    environment:
+      # --- Database (n8n's own PostgreSQL, NOT Bao Gia's) ---
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=n8n-postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=${N8N_DB_NAME:-n8n}
+      - DB_POSTGRESDB_USER=${N8N_DB_USER:-n8n}
+      - DB_POSTGRESDB_PASSWORD=${N8N_DB_PASSWORD:-n8n_dev_password}
+
+      # --- n8n Server ---
+      - N8N_HOST=${N8N_HOST:-localhost}
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=${N8N_PROTOCOL:-http}
+      - WEBHOOK_URL=${N8N_WEBHOOK_URL:-http://localhost:5679/}
+      - GENERIC_TIMEZONE=${N8N_TIMEZONE:-America/New_York}
+
+      # --- Authentication ---
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=${N8N_ADMIN_USER:-admin}
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_ADMIN_PASSWORD:-baogia_n8n_dev}
+
+      # --- Disable all telemetry and diagnostics ---
+      - N8N_DIAGNOSTICS_ENABLED=false
+      - N8N_PERSONALIZATION_ENABLED=false
+
+      # --- Execution Data Pruning (7 days = 168 hours for dev) ---
+      - EXECUTIONS_DATA_PRUNE=true
+      - EXECUTIONS_DATA_MAX_AGE=${N8N_EXECUTIONS_MAX_AGE:-168}
+
+      # --- Code Node: allow fs/path ---
+      - NODE_FUNCTION_ALLOW_BUILTIN=fs,path
+
+      # --- Logging ---
+      - N8N_LOG_LEVEL=${N8N_LOG_LEVEL:-info}
+      - N8N_LOG_OUTPUT=${N8N_LOG_OUTPUT:-console}
+
+    volumes:
+      # Persistent n8n data (workflows, credentials, etc.)
+      - baogia_n8n_data:/home/node/.n8n
+      # Custom nodes directory (mount from host for development)
+      - ./n8n/custom-nodes:/home/node/.n8n/custom
+    depends_on:
+      n8n-postgres:
+        condition: service_healthy
+    networks:
+      - baogia-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:5678/healthz || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # -------------------------------------------------------
+  # PostgreSQL 15 for n8n (separate from Bao Gia DB)
+  # -------------------------------------------------------
+  n8n-postgres:
+    image: postgres:15-alpine
+    container_name: baogia-n8n-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${N8N_DB_USER:-n8n}
+      - POSTGRES_PASSWORD=${N8N_DB_PASSWORD:-n8n_dev_password}
+      - POSTGRES_DB=${N8N_DB_NAME:-n8n}
+    volumes:
+      - baogia_n8n_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${N8N_DB_USER:-n8n} -d ${N8N_DB_NAME:-n8n}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - baogia-network
+    # Do NOT expose n8n-postgres port to host by default.
+    # Uncomment below for debugging:
+    # ports:
+    #   - "5434:5432"
+
+volumes:
+  baogia_n8n_data:
+    driver: local
+  baogia_n8n_postgres_data:
+    driver: local
+
+networks:
+  baogia-network:
+    driver: bridge
