@@ -51,6 +51,28 @@ Next.js + React + TailwindCSS.
 ## Shared (`shared/`)
 
 Shared types, schemas, constants between backend and frontend.
+This is the **single source of truth** for API contracts between backend and frontend.
+
+### Structure
+- `shared/types/` -- Entity interfaces and API types (quotation, customer, product, common)
+- `shared/constants/` -- Enums and constants (quotation-status, currencies)
+
+### Rules
+- Backend-dev MUST update shared types when changing API contracts
+- Frontend-dev MUST import from `shared/` instead of redefining types locally
+- All new types must be re-exported via the barrel `index.ts` files
+
+## Linear Integration
+
+This project uses the **Bao Gia** Linear team. When working with Linear tickets:
+
+- **Team**: Bao Gia
+- **Project Key**: `BAO` (tickets look like `BAO-123`)
+- When searching/listing Linear issues, always filter by team "Bao Gia"
+- When creating issues, always create under the "Bao Gia" team
+- Branch naming: `BAO-<number>/<short-description>` (e.g. `BAO-42/add-pdf-export`)
+- Commit prefix: `BAO-<number>: <message>` (e.g. `BAO-42: add PDF export feature`)
+- Do NOT interact with issues from other teams (e.g. Clincove)
 
 ## currentDate
 Today's date is 2026-02-22.
