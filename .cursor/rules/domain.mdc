@@ -1,0 +1,53 @@
+---
+description: "Quotation business domain rules"
+globs: "backend/src/modules/quotations/**,backend/src/modules/customers/**,shared/types/**"
+alwaysApply: false
+---
+
+# Business Domain Rules
+
+## Quotation Status Flow
+
+```
+draft -> sent -> accepted / rejected / expired
+```
+
+- New quotations MUST start as `draft`
+- Only `draft` quotations can be edited (update/delete items)
+- `sent` quotations are immutable — create a new version to modify
+- Every status transition MUST create a `QuotationHistory` record
+
+## Pricing Rules
+
+- All monetary values are stored as **integers** (no floating point)
+- Default currency: VND (Vietnamese Dong)
+- Supported currencies: VND, USD
+- `unitPrice` * `quantity` = line item total
+- Quotation total = sum of all line item totals (before tax/discount)
+
+## Entity Relations
+
+```
+Customer (1) ---> (N) Quotation
+Quotation (1) ---> (N) QuotationItem
+Quotation (1) ---> (N) QuotationHistory
+```
+
+- Deleting a Customer: soft-delete only (preserve quotation history)
+- Deleting a Quotation: cascade delete its items and history
+- Products are independent catalog items — not linked to quotation items by FK
+
+## History Actions
+
+Valid `action` values for `QuotationHistory`:
+
+| Action | Trigger |
+|--------|---------|
+| `created` | New quotation created |
+| `updated` | Quotation fields modified |
+| `status_changed` | Status transition |
+| `ai_extracted` | AI successfully extracted data from document |
+| `ingestion_failed` | AI extraction failed |
+| `email_sent` | Quotation delivered via email |
+| `item_added` | Line item added |
+| `item_removed` | Line item removed |

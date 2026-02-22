@@ -1,0 +1,42 @@
+---
+description: "Shared types and cross-boundary conventions"
+globs: "shared/**"
+alwaysApply: false
+---
+
+# Shared Types Rules
+
+The `shared/` directory is the **single source of truth** for API contracts.
+
+## Structure
+
+```
+shared/
+├── types/
+│   ├── quotation.ts    # Quotation, QuotationItem interfaces
+│   ├── customer.ts     # Customer interface
+│   ├── product.ts      # Product interface
+│   ├── common.ts       # Pagination, API response wrappers
+│   └── index.ts        # Barrel export
+└── constants/
+    ├── quotation-status.ts  # QuotationStatus enum
+    ├── currencies.ts        # Currency enum/constants
+    └── index.ts             # Barrel export
+```
+
+## Rules
+
+1. **Backend** MUST update shared types when changing API response shapes
+2. **Frontend** MUST import from `shared/types` — never redefine types locally
+3. All new types MUST be re-exported via `index.ts` barrel files
+4. Use `interface` for entity shapes, `type` for unions and utility types
+5. Keep types minimal — only include fields that cross the API boundary
+6. Mark optional fields explicitly with `?`
+
+## Naming Conventions
+
+- Entity types: PascalCase singular (`Quotation`, `Customer`)
+- List response: `PaginatedResponse<T>` wrapper
+- Create DTOs: `Create<Entity>Input`
+- Update DTOs: `Update<Entity>Input`
+- Enums: PascalCase (`QuotationStatus`, `Currency`)

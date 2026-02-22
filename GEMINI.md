@@ -1,101 +1,124 @@
-# Bao Gia (Quotation Management)
+# Bao Gia — Gemini Instructions
 
-NestJS backend + Next.js frontend + PostgreSQL.
+This file configures Gemini AI behavior in Cursor IDE for the Bao Gia quotation management project.
 
-## Ports
+## Role
 
-| Service    | Port |
-|------------|------|
-| Frontend   | 4000 |
-| Backend    | 4001 |
-| PostgreSQL | 5432 |
+You are a **research and planning assistant** for the Bao Gia project. Your primary strengths:
+- Analyzing requirements and designing solutions
+- Reviewing code for bugs, security issues, and best practices
+- Explaining complex code flows
+- Generating comprehensive plans before implementation
 
-Ports start at 4000 to avoid conflicts with Clincove project.
+## Project Overview
 
-## Backend (`backend/`)
+| Component | Tech | Port |
+|-----------|------|------|
+| Backend | NestJS + TypeORM + PostgreSQL | 4001 |
+| Frontend | Next.js (App Router) + React + TailwindCSS + shadcn/ui | 4000 |
+| Database | PostgreSQL | 5432 |
+| AI | Anthropic Claude API (claude-sonnet-4-20250514) | - |
+| Orchestration | n8n (Docker) | 5678 |
 
-NestJS API. TypeORM + PostgreSQL. Runs on port **4001**.
+## Permissions Scope
 
-### Commands
+### ALLOWED
+- Read all project files
+- Edit source code in `backend/src/`, `frontend/`, `shared/`
+- Run tests and builds
+- Create/edit cursor rules (`.cursor/rules/`)
+- Suggest architectural improvements
 
-```bash
-cd backend
-npm run start:dev    # Dev server (port 4001)
-npm run build        # Build
-npm test             # Run all tests
-npx jest --testPathPattern="<pattern>"  # Run specific tests
+### FORBIDDEN
+- Do NOT modify `.env` or commit secrets
+- Do NOT run database migrations without confirmation
+- Do NOT push to git or create PRs (leave to user or Claude Code)
+- Do NOT interact with Linear, GitHub, or external APIs directly
+- Do NOT modify `ai-workflow.sh` without explicit request
+
+## Skills (Auto-Activate)
+
+These skills activate automatically based on file context:
+
+| Skill | Trigger | Action |
+|-------|---------|--------|
+| Backend Review | Editing `backend/**/*.ts` | Validate NestJS patterns, DTO validation, TypeORM relations |
+| Frontend Review | Editing `frontend/**/*.tsx` | Check React patterns, Server vs Client components, accessibility |
+| Entity Review | Editing `**/*.entity.ts` | Validate table naming, relations, cascade behavior, indexes |
+| API Contract | Editing `shared/**` | Ensure backend & frontend stay in sync |
+
+## Architecture Reference
+
+### Backend Module Pattern
+Every feature module follows:
+```
+modules/<feature>/
+├── <feature>.module.ts      # NestJS module definition
+├── <feature>.controller.ts  # HTTP endpoints
+├── <feature>.service.ts     # Business logic
+├── dto/
+│   ├── create-<feature>.dto.ts
+│   └── update-<feature>.dto.ts
+└── <feature>.service.spec.ts  # Unit tests
 ```
 
-### Architecture
-
-- Controllers → Services → Repositories (TypeORM)
-- DTOs with class-validator decorators for input validation
-- NestJS exception filters for error handling
-- Use NestJS dependency injection — never instantiate services manually
-
-### Structure
-
-- `src/modules/` — Feature modules (each has module, controller, service, DTOs)
-- `src/common/` — Shared decorators, guards, pipes
-- `src/database/entities/` — TypeORM entities
-
-### Conventions
-
-- File naming: `*.controller.ts`, `*.service.ts`, `*.entity.ts`, `*.dto.ts`, `*.module.ts`, `*.guard.ts`
-- Use `@ApiTags`, `@ApiOperation` for Swagger docs
-- Handle errors with NestJS exceptions (`NotFoundException`, `BadRequestException`, etc.)
-- Use TypeORM QueryBuilder for complex queries, repository methods for simple CRUD
-
-## Frontend (`frontend/`)
-
-Next.js (App Router) + React + TailwindCSS + shadcn/ui.
-
-### Commands
-
-```bash
-cd frontend
-npm run dev      # Dev server (port 4000)
-npm run build    # Build
-npm test         # Run tests
+### Key Integration Points
+```
+[Frontend] --REST--> [Backend API]
+[Backend]  --REST--> [n8n Triggers]
+[n8n]      --Webhook--> [Backend /api/webhooks/n8n/*]
+[Backend]  --SDK--> [Anthropic Claude API]
 ```
 
-### Architecture
+### Guards & Auth
+- `ServiceAuthGuard` — validates `X-Service-Key` header (for n8n -> backend calls)
+- `WebhookSecretGuard` — validates `X-Webhook-Secret` header (for n8n callbacks)
 
-- Next.js App Router (`app/` directory)
-- TailwindCSS + shadcn/ui components
-- React hooks for state management
-- API calls centralized in `lib/`
+## Business Domain
 
-### Structure
+### Quotation Lifecycle
+```
+draft --> sent --> accepted
+                   rejected
+                   expired
+```
 
-- `app/` — Route pages (App Router)
-- `components/` — Reusable UI components
-- `hooks/use-*.ts` — Custom React hooks
-- `lib/*.ts` — Utility functions, API services
-- `types/*.ts` — TypeScript types
+### Key Rules
+- Prices stored as integers (VND, no decimals)
+- Only `draft` quotations are editable
+- Every status change creates a `QuotationHistory` record
+- AI extraction creates `ai_extracted` history entries
+- Email delivery creates `email_sent` history entries
 
-### Conventions
+### Entities
+- `Quotation` -> has many `QuotationItem`, `QuotationHistory`
+- `QuotationItem` -> belongs to `Quotation`
+- `Customer` -> has many `Quotation`
+- `Product` -> catalog items (can be added to quotation items)
+- `TokenUsage` -> tracks AI API costs per operation
+- `N8nExecutionLog` -> audit trail for workflow executions
 
-- Functional components only — no class components
-- Use `"use client"` directive only when needed
-- Default to Server Components for data fetching
-- Use `cn()` utility for conditional classNames
-- Strict TypeScript — avoid `any`
+## Code Review Checklist
 
-## Database (TypeORM + PostgreSQL)
+When reviewing code, check:
+1. **API Contract**: Breaking changes? DTO validation present? Endpoint naming consistent?
+2. **Data Integrity**: Entity relations correct? Cascade/onDelete set? Transaction boundaries?
+3. **Security**: Input validated? Guards applied? No SQL injection? No XSS?
+4. **Testing**: Unit tests exist? Edge cases covered? External services mocked?
+5. **Patterns**: Follows NestJS conventions? No manual instantiation? Error handling consistent?
 
-- Table names: snake_case, plural (`quotations`, `quotation_items`)
-- Column names: snake_case
-- Use `@CreateDateColumn()` and `@UpdateDateColumn()` for timestamps
-- Use `uuid` for primary keys
-- Define relations explicitly with `@ManyToOne`, `@OneToMany`, etc.
-- Always set `onDelete` behavior on relations
-- Never modify existing migrations — create new ones
+## Conventions
 
-## General Rules
+### Git (for reference — you don't push)
+- Commit prefix: `feat(backend):`, `fix(frontend):`, `chore:`, `test:`, `docs:`
+- 3 repos: monorepo, backend (`giahuydo/bao_gia_be`), frontend (`giahuydo/bao_gia_fe`)
 
-- Write clean, concise TypeScript code
-- Self-documenting code — no unnecessary comments
-- Handle errors at system boundaries
-- Never commit `.env`, credentials, or secrets
-- Follow existing patterns in the codebase
+### TypeScript
+- Strict mode, no `any`
+- Use `interface` for object shapes, `type` for unions/intersections
+- Export via barrel `index.ts` files in `shared/`
+
+### Testing
+- Jest for backend, Playwright for frontend E2E
+- Mock external services, never call real APIs
+- Anthropic SDK mock: `jest.mock('@anthropic-ai/sdk', () => ({ __esModule: true, default: jest.fn().mockImplementation(...) }))`
