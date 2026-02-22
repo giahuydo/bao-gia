@@ -1,20 +1,30 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Anthropic from '@anthropic-ai/sdk';
+import { TokenTrackingService } from './token-tracking.service';
+import { AiOperation } from '../../database/entities/token-usage.entity';
 
 @Injectable()
 export class AiService {
+  private readonly logger = new Logger(AiService.name);
   private client: Anthropic;
 
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService,
+    private tokenTracking: TokenTrackingService,
+  ) {
     const apiKey = this.configService.get<string>('anthropic.apiKey');
     this.client = new Anthropic({ apiKey });
   }
 
-  async generateQuotation(description: string) {
+  async generateQuotation(
+    description: string,
+    context?: { userId?: string; quotationId?: string },
+  ) {
+    const model = 'claude-sonnet-4-20250514';
     try {
       const response = await this.client.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model,
         max_tokens: 4096,
         system: `Ban la tro ly tao bao gia chuyen nghiep. Khi nguoi dung mo ta yeu cau, hay tao mot bao gia chi tiet voi cac hang muc cu the, don vi tinh, so luong va gia bang VND.
 
@@ -47,6 +57,16 @@ Luu y:
         ],
       });
 
+      // Track token usage (fire-and-forget)
+      this.tokenTracking.track({
+        operation: AiOperation.GENERATE,
+        model,
+        inputTokens: response.usage.input_tokens,
+        outputTokens: response.usage.output_tokens,
+        userId: context?.userId,
+        quotationId: context?.quotationId,
+      });
+
       const content = response.content[0];
       if (content.type !== 'text') {
         throw new Error('Unexpected response type');
@@ -67,14 +87,19 @@ Luu y:
     }
   }
 
-  async suggestItems(title: string, existingItems?: string[]) {
+  async suggestItems(
+    title: string,
+    existingItems?: string[],
+    context?: { userId?: string; quotationId?: string },
+  ) {
+    const model = 'claude-sonnet-4-20250514';
     try {
       const existingContext = existingItems?.length
         ? `\n\nCac hang muc da co: ${existingItems.join(', ')}`
         : '';
 
       const response = await this.client.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model,
         max_tokens: 4096,
         system: `Ban la tro ly tao bao gia. Khi nguoi dung cung cap tieu de bao gia, hay goi y cac hang muc phu hop.
 
@@ -98,6 +123,15 @@ Gia phai thuc te theo thi truong Viet Nam (VND). Khong lap lai hang muc da co.`,
         ],
       });
 
+      this.tokenTracking.track({
+        operation: AiOperation.SUGGEST,
+        model,
+        inputTokens: response.usage.input_tokens,
+        outputTokens: response.usage.output_tokens,
+        userId: context?.userId,
+        quotationId: context?.quotationId,
+      });
+
       const content = response.content[0];
       if (content.type !== 'text') {
         throw new Error('Unexpected response type');
@@ -118,10 +152,15 @@ Gia phai thuc te theo thi truong Viet Nam (VND). Khong lap lai hang muc da co.`,
     }
   }
 
-  async improveDescription(itemName: string, currentDescription: string) {
+  async improveDescription(
+    itemName: string,
+    currentDescription: string,
+    context?: { userId?: string; quotationId?: string },
+  ) {
+    const model = 'claude-sonnet-4-20250514';
     try {
       const response = await this.client.messages.create({
-        model: 'claude-sonnet-4-20250514',
+        model,
         max_tokens: 1024,
         system: `Ban la tro ly viet noi dung chuyen nghiep cho bao gia. Hay cai thien mo ta hang muc de chuyen nghiep, chi tiet va thuyet phuc hon. Tra ve chi mo ta da cai thien, khong them gi khac.`,
         messages: [
@@ -130,6 +169,15 @@ Gia phai thuc te theo thi truong Viet Nam (VND). Khong lap lai hang muc da co.`,
             content: `Cai thien mo ta cho hang muc "${itemName}":\n\nMo ta hien tai: ${currentDescription}`,
           },
         ],
+      });
+
+      this.tokenTracking.track({
+        operation: AiOperation.IMPROVE,
+        model,
+        inputTokens: response.usage.input_tokens,
+        outputTokens: response.usage.output_tokens,
+        userId: context?.userId,
+        quotationId: context?.quotationId,
       });
 
       const content = response.content[0];
