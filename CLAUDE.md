@@ -2,9 +2,19 @@
 
 NestJS backend + Next.js frontend + PostgreSQL.
 
+## Ports
+
+| Service    | Port |
+|------------|------|
+| Frontend   | 4000 |
+| Backend    | 4001 |
+| PostgreSQL | 5432 |
+
+Ports start at 4000 to avoid conflicts with Clincove project.
+
 ## Backend (`backend/`)
 
-NestJS API. TypeORM + PostgreSQL.
+NestJS API. TypeORM + PostgreSQL. Runs on port **4001**.
 
 ### Commands
 - `npm run start:dev` -- Start dev server
