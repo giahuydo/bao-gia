@@ -1,8 +1,14 @@
-# AI / Agent tooling (local only -- NEVER commit)
+# AI / Agent tooling
 .agent/
-.claude/
 .playwright-mcp/
 CONTEXT.md
+
+# Claude Code -- track shared configs, ignore local/sensitive files
+.claude/settings.json
+.claude/settings.local.json
+.claude/.env
+.claude/env.template
+.claude/worktrees/
 
 # Cursor -- share rules, ignore local state
 .cursor/mcp.json
