@@ -15,6 +15,11 @@ export enum HistoryAction {
   STATUS_CHANGED = 'status_changed',
   DUPLICATED = 'duplicated',
   PDF_EXPORTED = 'pdf_exported',
+  AI_EXTRACTED = 'ai_extracted',
+  AI_TRANSLATED = 'ai_translated',
+  NORMALIZED = 'normalized',
+  EMAIL_SENT = 'email_sent',
+  INGESTION_FAILED = 'ingestion_failed',
 }
 
 @Entity('quotation_history')

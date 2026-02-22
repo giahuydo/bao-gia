@@ -14,4 +14,12 @@ export default () => ({
   anthropic: {
     apiKey: process.env.ANTHROPIC_API_KEY,
   },
+  n8n: {
+    // Secret for n8n → backend API calls (X-Service-Key header)
+    serviceKey: process.env.N8N_SERVICE_KEY,
+    // Secret for n8n → backend webhook callbacks (X-Webhook-Secret header)
+    webhookSecret: process.env.N8N_WEBHOOK_SECRET,
+    // n8n base URL for backend → n8n webhook triggers
+    baseUrl: process.env.N8N_BASE_URL || 'http://localhost:5679',
+  },
 });

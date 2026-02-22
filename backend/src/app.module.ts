@@ -12,6 +12,8 @@ import { Currency } from './database/entities/currency.entity';
 import { CompanySettings } from './database/entities/company-settings.entity';
 import { Attachment } from './database/entities/attachment.entity';
 import { QuotationHistory } from './database/entities/quotation-history.entity';
+import { N8nExecutionLog } from './database/entities/n8n-execution-log.entity';
+import { TokenUsage } from './database/entities/token-usage.entity';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { CustomersModule } from './modules/customers/customers.module';
@@ -22,6 +24,8 @@ import { AiModule } from './modules/ai/ai.module';
 import { CurrenciesModule } from './modules/currencies/currencies.module';
 import { CompanySettingsModule } from './modules/company-settings/company-settings.module';
 import { AttachmentsModule } from './modules/attachments/attachments.module';
+import { IngestionModule } from './modules/ingestion/ingestion.module';
+import { WebhooksModule } from './modules/webhooks/webhooks.module';
 
 @Module({
   imports: [
@@ -50,6 +54,8 @@ import { AttachmentsModule } from './modules/attachments/attachments.module';
           CompanySettings,
           Attachment,
           QuotationHistory,
+          N8nExecutionLog,
+          TokenUsage,
         ],
         synchronize: configService.get('NODE_ENV') !== 'production',
         logging: configService.get('NODE_ENV') === 'development',
@@ -65,6 +71,8 @@ import { AttachmentsModule } from './modules/attachments/attachments.module';
     CurrenciesModule,
     CompanySettingsModule,
     AttachmentsModule,
+    IngestionModule,
+    WebhooksModule,
   ],
 })
 export class AppModule {}
