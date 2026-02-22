@@ -13,6 +13,7 @@ fi
 
 # Sensitive file patterns
 PROTECTED_PATTERNS=(
+  ".env"
   "credentials"
   "secrets"
   "package-lock.json"
