@@ -1,0 +1,34 @@
+---
+description: "Bao Gia project overview and conventions"
+alwaysApply: true
+---
+
+# Bao Gia (Quotation Management)
+
+Monorepo: NestJS backend + Next.js frontend + PostgreSQL.
+
+## Ports
+
+| Service    | Port |
+|------------|------|
+| Frontend   | 4000 |
+| Backend    | 4001 |
+| PostgreSQL | 5432 |
+
+## Tech Stack
+
+- **Backend**: NestJS, TypeORM, PostgreSQL, class-validator, class-transformer
+- **Frontend**: Next.js (App Router), React, TailwindCSS, shadcn/ui
+- **Language**: TypeScript (strict mode)
+- **Package Manager**: npm
+
+## General Rules
+
+- Write clean, concise TypeScript code
+- Prefer functional patterns over class-based where appropriate (frontend)
+- Use descriptive variable names (e.g., `isLoading`, `hasError`, `quotationItems`)
+- Do NOT add unnecessary comments — code should be self-documenting
+- Do NOT over-engineer — solve only what is asked
+- Follow existing patterns in the codebase
+- Always handle errors at system boundaries (API calls, user input)
+- Never commit `.env`, credentials, or secrets

@@ -1,0 +1,29 @@
+---
+description: "Database and TypeORM conventions"
+globs: "backend/src/database/**,backend/src/modules/**/*.entity.ts"
+alwaysApply: false
+---
+
+# Database Rules (TypeORM + PostgreSQL)
+
+## Entity Conventions
+
+- Table names: snake_case, plural (e.g., `quotations`, `quotation_items`)
+- Column names: snake_case
+- Use `@CreateDateColumn()` and `@UpdateDateColumn()` for timestamps
+- Use `uuid` for primary keys when appropriate
+- Define relations explicitly with `@ManyToOne`, `@OneToMany`, `@ManyToMany`
+- Always set `onDelete` behavior on relations
+
+## Migration Rules
+
+- Never modify existing migrations
+- Create new migrations for schema changes
+- Test migrations both up and down
+
+## Query Patterns
+
+- Simple CRUD: Use repository methods (`find`, `save`, `delete`)
+- Complex queries: Use QueryBuilder
+- Always use parameterized queries — never concatenate user input
+- Use transactions for multi-step operations

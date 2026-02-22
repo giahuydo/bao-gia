@@ -1,0 +1,48 @@
+---
+description: "NestJS backend conventions"
+globs: "backend/**"
+alwaysApply: false
+---
+
+# Backend Rules (NestJS)
+
+## Architecture
+
+- **Pattern**: Controllers → Services → Repositories (TypeORM)
+- **Module structure**: Each feature has its own module in `src/modules/`
+- Shared utilities go in `src/common/`
+- Database entities go in `src/database/entities/`
+
+## File Naming
+
+- `*.controller.ts` — HTTP route handlers
+- `*.service.ts` — Business logic
+- `*.entity.ts` — TypeORM entities
+- `*.dto.ts` — Data Transfer Objects
+- `*.module.ts` — NestJS modules
+- `*.guard.ts` — Auth/permission guards
+- `*.spec.ts` — Test files (colocated)
+
+## Conventions
+
+- Use `class-validator` decorators for DTO validation
+- Use `class-transformer` for serialization (`@Exclude`, `@Expose`)
+- Entities must extend or follow TypeORM patterns with `@Entity`, `@Column`, etc.
+- Use NestJS dependency injection — never instantiate services manually
+- Use `@ApiTags`, `@ApiOperation` for Swagger documentation
+- Handle errors with NestJS built-in exceptions (`NotFoundException`, `BadRequestException`, etc.)
+- Use TypeORM QueryBuilder for complex queries, repository methods for simple CRUD
+
+## Commands
+
+```bash
+cd backend
+npm run start:dev    # Dev server (port 4001)
+npm run build        # Build
+npm test             # Run all tests
+npx jest --testPathPattern="<pattern>"  # Run specific tests
+```
+
+## Path Aliases
+
+- `@/*` maps to `src/*` (see tsconfig.json)

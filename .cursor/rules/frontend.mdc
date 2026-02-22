@@ -1,0 +1,45 @@
+---
+description: "Next.js frontend conventions"
+globs: "frontend/**"
+alwaysApply: false
+---
+
+# Frontend Rules (Next.js + React)
+
+## Architecture
+
+- **Routing**: Next.js App Router (`app/` directory)
+- **Styling**: TailwindCSS + shadcn/ui components
+- **State**: React hooks (useState, useReducer) + custom hooks
+- **API calls**: Centralized in `lib/` utilities
+
+## File Naming
+
+- `page.tsx` — Route pages (App Router convention)
+- `layout.tsx` — Route layouts
+- `loading.tsx` — Loading states
+- `error.tsx` — Error boundaries
+- `components/*.tsx` — Reusable UI components
+- `hooks/use-*.ts` — Custom React hooks
+- `lib/*.ts` — Utility functions, API services
+- `types/*.ts` — TypeScript type definitions
+
+## Conventions
+
+- Use functional components only — no class components
+- Use `"use client"` directive only when needed (event handlers, hooks, browser APIs)
+- Default to Server Components for data fetching
+- Use `cn()` utility (from shadcn) for conditional classNames
+- API base URL: `http://localhost:4001` (backend)
+- Use TypeScript strict types — avoid `any`
+- Component props should be typed with interfaces
+- Use named exports for components
+
+## Commands
+
+```bash
+cd frontend
+npm run dev      # Dev server (port 4000)
+npm run build    # Build
+npm test         # Run tests
+```
