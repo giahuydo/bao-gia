@@ -41,7 +41,7 @@ export class PriceAlert {
   @Column({ name: 'product_id' })
   productId: string;
 
-  @Column({ name: 'product_name', nullable: true })
+  @Column({ name: 'product_name', type: 'varchar', nullable: true })
   productName: string | null;
 
   @Index()
