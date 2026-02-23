@@ -284,8 +284,252 @@ Single source of truth for API contracts. Both backend and frontend import from 
 
 **FORBIDDEN**: drop tables, force-push main, interact outside Bao Gia scope, commit `.env`/secrets
 
-## Agent Conventions
-- Stop agents after 15 minutes if not done
-- Prefer direct work over background agents for tasks < 10 minutes
-- Always push all 3 repos after commits
-- Don't ask for confirmation on simple commands
+## Project Phase: GREENFIELD — Dang xay dung tu dau
+
+> Du an Bao Gia KHONG phai codebase mature. Dang o giai doan **scaffolding + xay dung y tuong**.
+> Code hien tai la prototype/scaffold, chua chay production.
+> Moi rule ben duoi phai hieu trong context NAY.
+
+### Trang thai hien tai
+- Backend: scaffolded modules, entities, controllers — chua co business logic day du
+- Frontend: login + register + quotation list — con thieu 80% UI
+- Shared types: da dinh nghia — chua duoc validate qua thuc te
+- DB: migrations chua chay, seed data co ban
+
+### Uu tien khi xay dung
+1. **Lam cho chay duoc truoc** — build pass, server start, DB connect
+2. **Core flow truoc** — auth → quotation CRUD → PDF export
+3. **Them tung lop** — AI, ingestion, n8n sau khi core on dinh
+4. **Test song song** — viet test ngay khi implement, khong doi cuoi
+5. **Frontend di song song backend** — moi API endpoint xong → lam UI tuong ung
+
+---
+
+## Commit Message Convention
+
+### Format
+```
+<type>(<scope>): <subject>
+
+[body]
+
+[footer]
+```
+
+### Rules
+- **Header**: ≤72 ky tu, lowercase, imperative ("add" khong phai "added"), khong dau cham cuoi
+- **Scope**: `backend`, `frontend`, `shared`, hoac ticket ID (`BAO-123`)
+- **Body** (optional): giai thich **why**, wrap 72 ky tu, cach header 1 dong trong
+- **Footer** (optional): `Refs: BAO-XXXX` hoac `BREAKING CHANGE: mo ta`
+
+### Types
+| Type | Khi nao |
+|------|---------|
+| `feat` | Feature moi |
+| `fix` | Bug fix |
+| `test` | Them/sua test |
+| `chore` | Release, deps, config |
+| `refactor` | Sua code khong doi behavior |
+| `docs` | Documentation |
+
+### Vi du
+```
+feat(backend): implement quotation CRUD with pagination and soft-delete
+
+Refs: BAO-12
+```
+```
+feat(frontend): add quotation list page with search and status filter
+```
+
+---
+
+## Agent Optimization Rules
+
+### Model Strengths & Chi phi
+
+| Model | Cost (in/out per 1M) | Dung cho |
+|-------|----------------------|----------|
+| **Haiku 4.5** | $0.80 / $4 | Research, doc file, grep, tim code, Q&A don gian, quick-fix |
+| **Sonnet 4.6** | $3 / $15 | **80% cong viec**: implement endpoints, entities, migrations, tests, UI components |
+| **Opus 4.6** | $15 / $75 | Architecture decisions, complex analysis, review bao mat, chi khi that su can |
+
+### Nguyen tac: TU QUYET DINH, noi cho user biet
+
+**Mac dinh: tu lam truc tiep** — nhanh nhat, re nhat, khong spawn agent khi tu lam duoc.
+
+**Spawn agent CHI KHI:**
+1. **Can song song** — vd: backend API + frontend page cung luc → 2 agent Sonnet
+2. **Task qua lon** — context window se day → spawn agent rieng
+3. **Can model khac** — Sonnet implement trong khi Opus phan tich
+
+**Khi spawn**: dung `model="sonnet"`, giai thich ly do, max 15 turns, `isolation="worktree"` khi edit code.
+
+**Truoc moi task, LUON noi 1 cau** nhu:
+- "Task nay don gian, minh lam truc tiep"
+- "Task nay co 2 phan doc lap, de xuat spawn 2 agent song song"
+- "Task phuc tap, can doc code truoc roi quyet dinh"
+
+---
+
+## Greenfield Development Strategy
+
+### Build Order (uu tien tren xuong)
+
+**Phase 1 — Foundation (dang lam)**
+1. DB: chay migrations, seed data, verify entities
+2. Auth: register/login/profile chay duoc end-to-end
+3. Backend build + start thanh cong
+
+**Phase 2 — Core Business**
+4. Quotation CRUD (backend API + frontend UI)
+5. Customer CRUD
+6. Product catalog
+7. PDF export
+
+**Phase 3 — Advanced Features**
+8. Multi-currency
+9. Templates
+10. Company settings
+11. Attachments
+
+**Phase 4 — AI & Integration**
+12. AI module (Claude API)
+13. n8n ingestion pipeline
+14. Webhooks
+15. Token tracking
+
+**Phase 5 — Enterprise**
+16. Organizations & multi-tenancy
+17. Versioning
+18. Reviews & approval
+19. Glossary & rules
+
+### Cach implement moi feature
+```
+1. Spec: dinh nghia API contract trong shared/types/
+2. Backend: entity → migration → service → controller → test
+3. Frontend: API service → hook → page/component
+4. Verify: chay end-to-end, test ca happy path va error cases
+5. Commit: granular commit cho tung buoc
+```
+
+### KHONG lam
+- Khong toi uu som (performance tuning, caching) — lam cho chay dung truoc
+- Khong them feature chua plan — theo build order
+- Khong refactor code moi viet — chua co du context de biet pattern nao tot
+- Khong viet abstraction cho 1 use case — 3 duplicate lines tot hon 1 premature abstraction
+
+---
+
+## Workflow: Nhan task
+
+### Tu Linear ticket:
+1. Doc ticket (MCP tool truc tiep)
+2. Grep tim code lien quan
+3. Tao file `docs/tickets/{TICKET-ID}-requirement-analysis.md` (song ngu Viet + Anh)
+4. Danh gia: lam truc tiep hay spawn agent? → noi cho user
+5. Thuc hien
+
+### Tu user truc tiep:
+1. Hieu yeu cau, hoi lai neu khong ro
+2. Kiem tra build order — feature nay co phu thuoc gi chua xong khong?
+3. Neu phu thuoc chua xong → bao user, de xuat lam phu thuoc truoc
+4. Implement theo quy trinh: spec → backend → frontend → test → commit
+
+### Output rules:
+- **KHONG tu dong post** len Linear/Slack — chi soan draft, user tu gui
+- Neu co cau hoi → soan draft message cho user
+
+---
+
+## Context & Session Management
+
+### `/clear` giua cac tasks
+- Moi khi chuyen task khong lien quan → `/clear` de reset
+- Tranh context bleed
+
+### "Document & Clear" cho task dai
+1. Ghi progress vao `.claude/notes/{task-name}.md`
+2. `/clear`
+3. Restart voi file notes lam context
+
+### Session naming
+- `/rename` dat ten co nghia: `quotation-crud`, `BAO-12-auth`
+- De `/resume` tim lai sau
+
+---
+
+## Quality Gates
+
+### Tu review truoc khi "done"
+1. **Build pass** — `npm run build` khong loi
+2. **Logic dung** — xu ly happy path + error cases
+3. **Security** — khong SQL injection, XSS, command injection
+4. **Type safety** — khong dung `any`, TypeScript strict
+5. **Pattern consistency** — code theo cung pattern voi file khac trong du an
+6. **Test** — functions/endpoints moi co test
+
+### Khong commit code khong hieu
+- Doc lai moi dong truoc khi commit
+- Rewrite code phuc tap thanh don gian hon
+- Them comment giai thich WHY khi logic khong hien nhien
+
+---
+
+## Testing Strategy
+
+### Viet test NGAY khi implement — khong doi cuoi
+```
+Implement function → Viet test → Verify pass → Commit
+```
+
+### Test categories
+| Layer | Tool | Focus | Khi nao |
+|-------|------|-------|---------|
+| Unit | Jest | Services, guards, utils | Moi function moi |
+| Integration | Jest + supertest | Controller + DB | Moi endpoint moi |
+| E2E | Playwright | Full UI flows | Sau khi frontend page xong |
+
+### Edge cases uu tien
+- Empty/null/undefined input
+- Unauthorized access (wrong role, wrong org)
+- Validation errors (invalid email, negative price)
+- Boundary values (max file size, token limits)
+
+---
+
+## Version Control
+
+### Commit nho, commit thuong
+- Commit sau moi step nho — "save point" de rollback neu can
+- 1 commit = 1 concern (khong mix feature + fix + refactor)
+
+### Branch strategy
+- Feature: `BAO-{id}/{short-desc}`
+- Fix: `fix/{short-desc}`
+- Khong lam truc tiep tren main
+
+### Truoc khi commit
+1. `npm run build` pass
+2. `npm test` pass (neu co test)
+3. Khong co `.env`, secrets trong staged files
+4. Commit message dung format
+
+---
+
+## Do Not Commit
+
+- **KHONG commit**: `CLAUDE.md`, `.claude/`, `docs/tickets/*.md`
+- Day la config AI agent, khong phai application code
+- Chi commit code thuc su: backend, frontend, shared
+
+---
+
+## CLAUDE.md Maintenance
+
+- **Them rule khi Claude lam sai** — khong them rule truoc khi co van de
+- **Kem vi du** — Claude hoc tot tu example hon tu mo ta truu tuong
+- **Khong chi noi "KHONG X"** — phai noi "Thay vi X, lam Y"
+- **Giu ngan gon** — ~15KB target, qua dai → Claude bo qua cuoi file
+- **Review khi chuyen phase** — cap nhat khi du an tien trien (vd: tu Phase 1 sang Phase 2)
