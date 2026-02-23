@@ -10,3 +10,4 @@ export * from './version';
 export * from './ai';
 export * from './glossary';
 export * from './rule';
+export * from './price-monitoring';
