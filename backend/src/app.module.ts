@@ -1,4 +1,6 @@
 import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
+import { APP_FILTER } from '@nestjs/core';
+import { SentryModule, SentryGlobalFilter } from '@sentry/nestjs/setup';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { EventEmitterModule } from '@nestjs/event-emitter';
@@ -70,6 +72,7 @@ import { CorrelationIdMiddleware } from './common/middleware/correlation-id.midd
 
 @Module({
   imports: [
+    SentryModule.forRoot(),
     ConfigModule.forRoot({
       isGlobal: true,
       load: [configuration],
@@ -124,7 +127,9 @@ import { CorrelationIdMiddleware } from './common/middleware/correlation-id.midd
             PriceRecord,
             PriceAlert,
           ],
-          synchronize: configService.get('NODE_ENV') !== 'production',
+          synchronize:
+            configService.get('DB_SYNCHRONIZE') === 'true' ||
+            configService.get('NODE_ENV') !== 'production',
           logging: configService.get('NODE_ENV') === 'development',
         };
       },
@@ -155,6 +160,12 @@ import { CorrelationIdMiddleware } from './common/middleware/correlation-id.midd
     N8nTriggerModule,
     TelegramModule.forRoot(),
     HealthModule,
+  ],
+  providers: [
+    {
+      provide: APP_FILTER,
+      useClass: SentryGlobalFilter,
+    },
   ],
 })
 export class AppModule implements NestModule {
