@@ -1,19 +1,47 @@
+databases:
+  - name: bao-gia-db
+    plan: free
+    databaseName: bao_gia
+    region: singapore
+
 services:
   - type: web
     name: bao-gia-api
     runtime: node
     plan: free
-    buildCommand: cd backend && npm ci && npm run build
-    startCommand: cd backend && node dist/main
+    region: singapore
+    rootDir: backend
+    buildCommand: PUPPETEER_SKIP_DOWNLOAD=true npm ci --include=dev && npm run build
+    startCommand: npm run start:prod
+    healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
         value: "4001"
+      - key: PUPPETEER_SKIP_DOWNLOAD
+        value: "true"
       - key: DATABASE_URL
-        sync: false
+        fromDatabase:
+          name: bao-gia-db
+          property: connectionString
+      - key: DB_SYNCHRONIZE
+        value: "true"
       - key: JWT_SECRET
-        generateValue: true
-      - key: CORS_ORIGIN
         sync: false
-    healthCheckPath: /api/health
+      - key: JWT_EXPIRATION
+        value: 7d
+      - key: CORS_ORIGIN
+        value: https://bao-gia-fe.vercel.app,http://localhost:4000
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: N8N_SERVICE_KEY
+        sync: false
+      - key: N8N_WEBHOOK_SECRET
+        sync: false
+      - key: ENCRYPTION_KEY
+        sync: false
+      - key: SENTRY_DSN
+        sync: false
+      - key: SENTRY_ENVIRONMENT
+        value: production

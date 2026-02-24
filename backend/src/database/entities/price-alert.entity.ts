@@ -42,7 +42,7 @@ export class PriceAlert {
   productId: string;
 
   @Column({ name: 'product_name', type: 'varchar', nullable: true })
-  productName: string | null;
+  productName: string;
 
   @Index()
   @Column({ type: 'enum', enum: PriceAlertSeverity })

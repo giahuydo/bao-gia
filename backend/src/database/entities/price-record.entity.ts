@@ -45,7 +45,7 @@ export class PriceRecord {
   currencyCode: string;
 
   @Column({ type: 'varchar', nullable: true })
-  source: string | null;
+  source: string;
 
   @Column({ name: 'fetched_at', type: 'timestamp' })
   fetchedAt: Date;
