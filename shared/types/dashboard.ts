@@ -9,6 +9,8 @@ export interface IDashboardStats {
   totalProducts: number;
   recentQuotations: IDashboardQuotation[];
   monthlyTrend: IMonthlyTrend[];
+  acceptanceRate: number;
+  conversionRate: number;
 }
 
 export interface IDashboardQuotation {
