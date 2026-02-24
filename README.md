@@ -181,7 +181,7 @@ Copy `backend/.env.example` to `backend/.env` and configure the following:
 | Document | Description |
 |----------|-------------|
 | [Architecture](docs/architecture.md) | System architecture, module dependencies, ER diagram, auth flow, state machines |
-| [Database Schema](docs/database-schema.md) | All 25 entities with fields, relationships, indexes, migration workflow |
+| [Database Schema](docs/database-schema.md) | All 24 entities with fields, relationships, indexes, migration workflow |
 | [API Reference](docs/api-reference.md) | All endpoints by module with auth, request/response examples, error codes |
 | [Security](docs/security.md) | JWT auth, RBAC, encryption, CORS, input validation, service-to-service auth |
 | [Developer Guide](docs/developer-guide.md) | Onboarding, project structure, backend/frontend patterns, git workflow, how-tos |

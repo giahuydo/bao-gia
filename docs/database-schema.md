@@ -3,7 +3,7 @@
 > Last updated: 2026-02-24
 > Database: PostgreSQL 15
 > ORM: TypeORM 0.3.x
-> Total entities: 25
+> Total entities: 24
 
 ---
 

@@ -206,7 +206,7 @@ backend/src/
 frontend/src/
 ├── app/                        # Next.js App Router pages
 │   ├── layout.tsx              # Root layout — Providers + Navbar
-│   ├── page.tsx                # Root redirect -> /quotations
+│   ├── page.tsx                # Root redirect -> /dashboard
 │   ├── login/page.tsx
 │   ├── register/page.tsx
 │   ├── dashboard/page.tsx
@@ -227,6 +227,7 @@ frontend/src/
 │   ├── currencies/page.tsx
 │   ├── glossary/page.tsx
 │   ├── rules/
+│   ├── price-monitoring/page.tsx
 │   └── workflows/page.tsx
 ├── components/
 │   ├── layout/
@@ -246,7 +247,8 @@ frontend/src/
 │   ├── glossary/
 │   ├── rules/
 │   ├── versions/
-│   └── settings/
+│   ├── settings/
+│   └── price-monitoring/
 ├── hooks/                      # React Query hooks (one per domain)
 │   ├── use-quotations.ts
 │   ├── use-customers.ts
@@ -461,7 +463,9 @@ app.useGlobalPipes(new ValidationPipe({
   whitelist: true,           // Strip unknown properties
   forbidNonWhitelisted: true, // 400 if unknown properties sent
   transform: true,           // Auto-transform to DTO class instances
-  implicitConversion: true,  // Convert query params to declared types
+  transformOptions: {
+    enableImplicitConversion: true,  // Convert query params to declared types
+  },
 }));
 ```
 
@@ -658,7 +662,7 @@ shared/types/quotation.ts
 
 ```typescript
 // next.config.ts
-config.resolve.alias['@shared'] = path.join(__dirname, '../shared');
+config.resolve.alias["@shared"] = path.resolve(__dirname, "shared");
 ```
 
 **Frontend tsconfig path** (set in `tsconfig.json`):

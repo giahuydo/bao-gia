@@ -38,7 +38,7 @@ Tai lieu nay huong dan nguoi dung cuoi su dung he thong Bao Gia de quan ly bao g
    - **Email** — dung de dang nhap, phai hop le
    - **Mat khau** — dat mat khau du manh
 4. Nhan nut **Register** de hoan tat dang ky
-5. He thong tu dong dang nhap va chuyen den trang bao gia
+5. He thong tu dong dang nhap va chuyen den trang Dashboard
 
 ### 2.2 Dang Nhap
 
@@ -46,7 +46,7 @@ Tai lieu nay huong dan nguoi dung cuoi su dung he thong Bao Gia de quan ly bao g
 2. Nhap **Email** va **Mat khau** da dang ky
 3. Nhan bieu tuong mat de hien/an mat khau neu can
 4. Nhan nut **Sign in**
-5. Neu thong tin dung, ban se duoc chuyen den trang danh sach bao gia
+5. Neu thong tin dung, ban se duoc chuyen den trang Dashboard
 
 ### 2.3 Dang Xuat
 
@@ -249,7 +249,15 @@ AI giup viet lai mo ta san pham / bao gia chuyen nghiep hon.
 4. AI tra ve phien ban cai thien, ro rang va chuyen nghiep hon
 5. Sao chep ket qua va su dung trong bao gia
 
-### 6.4 Xem Thong Ke Su Dung AI
+### 6.4 So Sanh Thong So (Compare)
+
+So sanh thong so ky thuat giua nha cung cap va yeu cau khach hang.
+
+1. Su dung API endpoint `POST /api/ai/compare`
+2. Nhap thong so ky thuat cua nha cung cap (vendorSpec) va yeu cau khach hang (customerRequirement)
+3. AI phan tich va tra ve ket qua so sanh chi tiet, giup xac dinh su phu hop
+
+### 6.5 Xem Thong Ke Su Dung AI
 
 Tu menu nguoi dung (goc tren phai), chon **AI Usage** de xem:
 - So luong token da su dung theo thang

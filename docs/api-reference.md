@@ -1344,7 +1344,6 @@ Get aggregated AI token usage summary grouped by operation and time period.
 |-----------|------|-------------|
 | `from` | date string | Start date filter |
 | `to` | date string | End date filter |
-| `operation` | enum | Filter by: `generate`, `suggest`, `improve`, `extract`, `translate`, `compare` |
 
 **Response (200):** Aggregated usage totals by operation.
 
@@ -1372,7 +1371,9 @@ Get cost analytics dashboard with time-series data, budget alerts, and per-user 
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `period` | string | `7d`, `30d`, `90d` |
+| `from` | date string | Start date (ISO format) |
+| `to` | date string | End date (ISO format) |
+| `groupBy` | string | `day`, `week`, `month` (default: `day`) |
 
 **Response (200):** `DashboardResponse` object including time-series, per-operation breakdown, per-user breakdown, and budget alert if approaching limit.
 
@@ -1809,9 +1810,12 @@ Request a revision — sends the review back to the requester for modification.
 
 ```json
 {
-  "notes": "Please update item descriptions to be more detailed"
+  "reviewerNotes": "Please update item descriptions to be more detailed",
+  "reviewerChanges": {}
 }
 ```
+
+`reviewerNotes` is **required**. `reviewerChanges` is optional (object).
 
 ---
 

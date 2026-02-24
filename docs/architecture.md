@@ -56,7 +56,7 @@
 │  └─────────────────────────────────────────────────────────────────┘    │
 │                                                                          │
 │  22 Feature Modules (see section 2)                                      │
-│  TypeORM  |  25 Entities  |  EventEmitter                               │
+│  TypeORM  |  24 Entities  |  EventEmitter                               │
 │  Sentry error tracking                                                   │
 └──────────┬────────────────────────────────────┬──────────────────────────┘
            │ TypeORM (pg driver)                │ HTTP  X-Service-Key /
@@ -66,7 +66,7 @@
 │  PostgreSQL 15        │         │  n8n Workflow Engine                   │
 │  Port 5432            │         │  Port 5679                             │
 │  Database: bao_gia    │         │                                        │
-│  25 tables            │         │  Workflows:                            │
+│  24 tables            │         │  Workflows:                            │
 │                       │         │  - Vendor Quotation Ingestion          │
 │  (main application DB)│         │  - Quotation Delivery (email)          │
 └───────────────────────┘         │  - Scheduled Expiration Check          │
@@ -84,7 +84,7 @@
                                   └──────────────────────┘
 
 External integrations:
-  - Telegram Bot API  (NestgramJS — price alerts, quotation notifications)
+  - Telegram Bot API  (nestjs-telegraf — price alerts, quotation notifications)
   - Sentry            (error tracking, both frontend and backend)
   - Email SMTP        (via n8n — quotation delivery)
 ```
@@ -108,7 +108,7 @@ AppModule
 │
 ├── Infrastructure (no business deps)
 │   ├── ConfigModule (global)
-│   ├── TypeOrmModule (global, 25 entities)
+│   ├── TypeOrmModule (global, 24 entities)
 │   ├── EventEmitterModule (global)
 │   ├── SentryModule
 │   ├── N8nTriggerModule ──────────────────────► ConfigService
@@ -123,9 +123,7 @@ AppModule
 │
 ├── Quotation Domain
 │   ├── QuotationsModule ──────────────────────► Quotation, QuotationItem, QuotationHistory
-│   │                                            Customer, Product, Template, Currency
-│   │                                            Currency, CompanySettings entities
-│   │                                            N8nTriggerService
+│   │                                            Customer, Product entities
 │   ├── CustomersModule ───────────────────────► Customer entity
 │   ├── ProductsModule ────────────────────────► Product entity
 │   ├── TemplatesModule ───────────────────────► Template entity
@@ -134,7 +132,7 @@ AppModule
 │   └── AttachmentsModule ─────────────────────► Attachment entity
 │
 ├── AI & Ingestion
-│   ├── AiModule ──────────────────────────────► TokenUsage, AiPromptVersion entities
+│   ├── AiModule ──────────────────────────────► TokenUsage, Organization entities
 │   │                                            ConfigService (ANTHROPIC_API_KEY)
 │   │                                            TokenTrackingService
 │   ├── IngestionModule ───────────────────────► IngestionJob, FileChecksumCache entities
@@ -142,8 +140,9 @@ AppModule
 │   └── JobsModule ────────────────────────────► IngestionJob entity
 │
 ├── Webhooks & Integration
-│   ├── WebhooksModule ────────────────────────► QuotationHistory, N8nExecutionLog entities
-│   │                                            QuotationsModule
+│   ├── WebhooksModule ────────────────────────► Quotation, QuotationHistory, N8nExecutionLog
+│   │                                            IngestionJob entities
+│   │                                            QuotationsModule, PriceMonitoringModule
 │   └── N8nTriggerModule ──────────────────────► ConfigService (N8N_BASE_URL, N8N_SERVICE_KEY)
 │
 ├── Workflow & Approval
@@ -162,7 +161,7 @@ AppModule
 └── Notifications
     └── TelegramModule ────────────────────────► ConfigService (TELEGRAM_BOT_TOKEN)
                                                  TelegramNotificationService
-                                                 EventEmitter (price alerts)
+                                                 QuotationsModule, ReviewsModule
 ```
 
 ### Module Summary Table
@@ -638,13 +637,13 @@ Note: `OrgMemberRole` (organization-level) is distinct from `UserRole` (system-l
 | Plan | Monthly Token Limit | Description |
 |------|--------------------|-|
 | free | 100,000 tokens | Trial |
-| starter | 500,000 tokens | Small team |
-| professional | 2,000,000 tokens | Growing business |
+| starter | 1,000,000 tokens | Small team |
+| professional | 5,000,000 tokens | Growing business |
 | enterprise | Unlimited | Large organizations |
 
 ### TenantInterceptor
 
-`TenantInterceptor` extracts the `organizationId` from the JWT user context and stores it in `TenantContextService` (AsyncLocalStorage), allowing TypeORM repositories to scope queries automatically.
+`TenantInterceptor` extracts the `organizationId` from the JWT user context and stores it in `TenantContext` (request-scoped Injectable), allowing TypeORM repositories to scope queries automatically.
 
 ---
 
@@ -685,7 +684,7 @@ Note: `OrgMemberRole` (organization-level) is distinct from `UserRole` (system-l
 │   │   ├── config/
 │   │   │   └── configuration.ts # Typed config from env vars
 │   │   ├── database/
-│   │   │   ├── entities/        # 25 TypeORM entity files + index.ts
+│   │   │   ├── entities/        # 24 TypeORM entity files + index.ts
 │   │   │   ├── migrations/      # TypeORM migration files
 │   │   │   └── seeds/           # Database seed data
 │   │   ├── common/
@@ -693,7 +692,7 @@ Note: `OrgMemberRole` (organization-level) is distinct from `UserRole` (system-l
 │   │   │   ├── decorators/      # @Roles(), @CurrentUser()
 │   │   │   ├── interceptors/    # TransformInterceptor, TenantInterceptor
 │   │   │   ├── middleware/      # CorrelationIdMiddleware
-│   │   │   └── services/        # EncryptionService, N8nTriggerService, TenantContextService
+│   │   │   └── services/        # EncryptionService, N8nTriggerService, TenantContext
 │   │   └── modules/             # 22 feature modules
 │   │       ├── auth/            # JWT login/register/profile
 │   │       ├── users/           # User management (admin)

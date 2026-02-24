@@ -70,6 +70,12 @@ Generate:
 openssl rand -hex 32
 ```
 
+#### Telegram
+
+| Variable | Description | Default | Required |
+|----------|-------------|---------|----------|
+| `TELEGRAM_BOT_TOKEN` | Telegram Bot API token for price alerts and quotation notifications. Module degrades gracefully if not set. | — | No |
+
 #### CORS
 
 | Variable | Description | Default | Required |

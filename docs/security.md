@@ -32,11 +32,11 @@ Bao Gia uses stateless JWT (JSON Web Token) authentication via `@nestjs/passport
   "sub": "<user-uuid>",
   "email": "user@example.com",
   "role": "sales",
-  "organizationId": "<org-uuid>"
+  "organizationId": "<org-uuid>"  // only present if user has an active org membership
 }
 ```
 
-The `organizationId` is populated from the user's first active `OrganizationMember` record. This is used for multi-tenant scoping throughout the request lifecycle.
+The `organizationId` is conditionally populated from the user's first active `OrganizationMember` record. If the user has no organization membership, this field will be absent from the token. This is used for multi-tenant scoping throughout the request lifecycle.
 
 **Token expiration:** 7 days (configurable via `JWT_EXPIRATION` env var).
 
