@@ -11,7 +11,7 @@ services:
     plan: free
     region: singapore
     rootDir: backend
-    buildCommand: PUPPETEER_SKIP_DOWNLOAD=true npm ci --include=dev && npm run build
+    buildCommand: PUPPETEER_SKIP_DOWNLOAD=true npm ci --include=dev && npm run build && npm run seed
     startCommand: npm run start:prod
     healthCheckPath: /api/health
     envVars:
