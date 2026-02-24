@@ -1,3 +1,5 @@
+import type { ICustomer } from './customer';
+
 export enum QuotationStatus {
   DRAFT = 'draft',
   SENT = 'sent',
@@ -17,6 +19,11 @@ export enum HistoryAction {
   NORMALIZED = 'normalized',
   EMAIL_SENT = 'email_sent',
   INGESTION_FAILED = 'ingestion_failed',
+  VERSION_CREATED = 'version_created',
+  REVIEW_REQUESTED = 'review_requested',
+  REVIEW_APPROVED = 'review_approved',
+  REVIEW_REJECTED = 'review_rejected',
+  COMPARISON_RUN = 'comparison_run',
 }
 
 export interface IQuotationItem {
@@ -37,6 +44,7 @@ export interface IQuotation {
   quotationNumber: string;
   title: string;
   customerId: string;
+  customer?: ICustomer;
   status: QuotationStatus;
   validUntil?: string;
   notes?: string;
@@ -48,6 +56,7 @@ export interface IQuotation {
   currencyId?: string;
   templateId?: string;
   createdBy: string;
+  organizationId?: string;
   items: IQuotationItem[];
   version: number;
   createdAt: string;
