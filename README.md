@@ -178,8 +178,16 @@ Copy `backend/.env.example` to `backend/.env` and configure the following:
 
 ## Documentation
 
-See the `docs/` directory for detailed documentation on:
-- API specifications
-- Database schema
-- n8n workflow setup
-- Deployment guide
+| Document | Description |
+|----------|-------------|
+| [Architecture](docs/architecture.md) | System architecture, module dependencies, ER diagram, auth flow, state machines |
+| [Database Schema](docs/database-schema.md) | All 25 entities with fields, relationships, indexes, migration workflow |
+| [API Reference](docs/api-reference.md) | All endpoints by module with auth, request/response examples, error codes |
+| [Security](docs/security.md) | JWT auth, RBAC, encryption, CORS, input validation, service-to-service auth |
+| [Developer Guide](docs/developer-guide.md) | Onboarding, project structure, backend/frontend patterns, git workflow, how-tos |
+| [Deployment](docs/deployment.md) | Environment variables, Docker Compose, Render/Vercel deployment, health checks |
+| [User Guide](docs/user-guide.md) | Huong dan su dung (tieng Viet) — dang ky, bao gia, AI, templates, duyet |
+| [Tech Stack](docs/tech-stack.md) | Technology choices and rationale |
+| [n8n Architecture](docs/n8n-architecture.md) | n8n workflow automation setup and integration |
+
+Swagger API docs are also available at `http://localhost:4001/api/docs` when the backend is running.
